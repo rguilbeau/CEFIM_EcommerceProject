@@ -9,5 +9,13 @@
         <module name="CEFIM_EcommerceProject" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="CEFIM_EcommerceProject" target="14" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="CEFIM_EcommerceProject" options="-parameters" />
+    </option>
   </component>
 </project>
