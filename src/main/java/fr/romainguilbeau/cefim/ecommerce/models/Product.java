@@ -25,10 +25,22 @@ public class Product {
      * The picture path of the product
      */
     private String picture;
+
     /**
-     * The stock associated to this product
+     * Create new product
+     * @param id id
+     * @param name name
+     * @param description desc
+     * @param price price
+     * @param picture pict
      */
-    private Stock stock;
+    public Product(Long id, String name, String description, double price, String picture) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.picture = picture;
+    }
 
     /**
      * Get the product ID
@@ -71,10 +83,16 @@ public class Product {
     }
 
     /**
-     * Get the stock associated to this product
-     * @return The stock associated to this product
+     * {{@inheritDoc}}
      */
-    public Stock getStock() {
-        return stock;
+    @Override
+    public String toString() {
+        return "Product{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", price=" + price +
+                ", picture='" + picture + '\'' +
+                '}';
     }
 }
