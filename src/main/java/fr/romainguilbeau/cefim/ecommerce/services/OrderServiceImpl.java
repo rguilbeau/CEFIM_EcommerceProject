@@ -5,39 +5,51 @@ import fr.romainguilbeau.cefim.ecommerce.exceptions.StockException;
 import fr.romainguilbeau.cefim.ecommerce.models.Order;
 import fr.romainguilbeau.cefim.ecommerce.models.OrderProduct;
 import fr.romainguilbeau.cefim.ecommerce.models.OrderStatus;
+import fr.romainguilbeau.cefim.ecommerce.repositories.OrderRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Order services
  */
+@Service("orders")
 public class OrderServiceImpl implements OrderService {
-
-    /**
-     * List of all orders
-     */
-    private final List<Order> allOrders = new ArrayList<>();
     /**
      * Stock services
      */
-    private StockService stockService;
-
+    @Autowired
+    private OrderRepository orderRepository;
     /**
-     * Ser the stock services
-     *
-     * @param stockService The stock services
+     * Stock services
      */
-    public void setStockService(StockService stockService) {
-        this.stockService = stockService;
-    }
+    @Autowired
+    private StockService stockService;
 
     /**
      * {{@inheritDoc}}
      */
     @Override
     public List<Order> getAllOrders() {
-        return allOrders;
+        List<Order> orders = new ArrayList<>();
+        orderRepository.findAll().forEach(orders::add);
+        return orders;
+    }
+
+    /**
+     * {{@inheritDoc}}
+     */
+    @Override
+    public Order findOrderById(Long id) {
+        Optional<Order> orderOptional = orderRepository.findById(id);
+        if (orderOptional.isEmpty()) {
+            throw new ResourceNotFoundException();
+        } else {
+            return orderOptional.get();
+        }
     }
 
     /**
@@ -47,8 +59,7 @@ public class OrderServiceImpl implements OrderService {
     public Order create(Order order) {
         order.updateCreatedDate();
         order.setStatus(OrderStatus.IN_PROGRESS);
-        allOrders.add(order);
-        return order;
+        return orderRepository.save(order);
     }
 
     /**
@@ -56,25 +67,16 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public void update(Order order) throws StockException {
-        int sizeOrders = allOrders.size();
-        boolean found = false;
+        // check if order exists
+        findOrderById(order.getId());
 
-        for (int i = 0; i < sizeOrders; i++) {
-            if (allOrders.get(i).getId().equals(order.getId())) {
-                allOrders.set(i, order);
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            throw new ResourceNotFoundException();
-        }
-
+        // update stock if order payed
         if (order.getStatus() == OrderStatus.PAYED) {
             for (OrderProduct orderProduct : order.getOrderProducts()) {
                 stockService.removeProduct(orderProduct.getProduct(), orderProduct.getQuantity());
             }
         }
+
+        orderRepository.save(order);
     }
 }

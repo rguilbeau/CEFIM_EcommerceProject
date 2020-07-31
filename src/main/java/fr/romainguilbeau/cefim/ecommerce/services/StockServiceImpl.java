@@ -4,6 +4,9 @@ import fr.romainguilbeau.cefim.ecommerce.exceptions.ResourceNotFoundException;
 import fr.romainguilbeau.cefim.ecommerce.exceptions.StockException;
 import fr.romainguilbeau.cefim.ecommerce.models.Product;
 import fr.romainguilbeau.cefim.ecommerce.models.Stock;
+import fr.romainguilbeau.cefim.ecommerce.repositories.StockRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,19 +15,20 @@ import java.util.Optional;
 /**
  * Stock services
  */
+@Service("stocks")
 public class StockServiceImpl implements StockService {
 
-    /**
-     * All stocks
-     */
-    private final List<Stock> allStock = new ArrayList<>();
+    @Autowired
+    private StockRepository stockRepository;
 
     /**
      * {{@inheritDoc}}
      */
     @Override
     public List<Stock> getAllStock() {
-        return allStock;
+        List<Stock> stocks = new ArrayList<>();
+        stockRepository.findAll().forEach(stocks::add);
+        return stocks;
     }
 
     /**
@@ -32,14 +36,11 @@ public class StockServiceImpl implements StockService {
      */
     @Override
     public Stock findStockByProductId(Long productId) throws ResourceNotFoundException {
-        Optional<Stock> optionalStock = allStock.stream()
-                .filter(stock -> stock.getProduct().getId().equals(productId))
-                .findAny();
-
-        if (optionalStock.isEmpty()) {
+        Optional<Stock> stockOptional = stockRepository.findByProductId(productId);
+        if (stockOptional.isEmpty()) {
             throw new ResourceNotFoundException();
         } else {
-            return optionalStock.get();
+            return stockOptional.get();
         }
     }
 
@@ -60,8 +61,9 @@ public class StockServiceImpl implements StockService {
         try {
             Stock stock = findStockByProductId(product.getId());
             stock.adjustStock(quantity);
+            stockRepository.save(stock);
         } catch (ResourceNotFoundException e) {
-            allStock.add(new Stock(product, quantity));
+            stockRepository.save(new Stock(product.getId(), product, quantity));
         }
     }
 
@@ -76,6 +78,7 @@ public class StockServiceImpl implements StockService {
             throw new StockException();
         } else {
             stock.adjustStock(-quantity);
+            stockRepository.save(stock);
         }
     }
 }

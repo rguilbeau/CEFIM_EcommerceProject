@@ -18,6 +18,14 @@ public interface OrderService {
     List<Order> getAllOrders();
 
     /**
+     * Get one order
+     *
+     * @param id The id of order
+     * @return The order
+     */
+    Order findOrderById(Long id);
+
+    /**
      * Add new order with status "in_progress"
      *
      * @param order The order to add

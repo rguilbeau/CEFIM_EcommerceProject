@@ -2,6 +2,9 @@ package fr.romainguilbeau.cefim.ecommerce.services;
 
 import fr.romainguilbeau.cefim.ecommerce.exceptions.ResourceNotFoundException;
 import fr.romainguilbeau.cefim.ecommerce.models.Product;
+import fr.romainguilbeau.cefim.ecommerce.repositories.ProductRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,19 +13,20 @@ import java.util.Optional;
 /**
  * Product services
  */
+@Service("products")
 public class ProductServiceImpl implements ProductService {
-
-    /**
-     * List of all products
-     */
-    private final List<Product> allProduct = new ArrayList<>();
+    
+    @Autowired
+    private ProductRepository productRepository;
 
     /**
      * {{@inheritDoc}}
      */
     @Override
     public List<Product> getAllProducts() {
-        return allProduct;
+        List<Product> products = new ArrayList<>();
+        productRepository.findAll().forEach(products::add);
+        return products;
     }
 
     /**
@@ -30,10 +34,7 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     public Product findProductById(Long id) throws ResourceNotFoundException {
-        Optional<Product> productOptional = allProduct.stream()
-                .filter(p -> p.getId().equals(id))
-                .findAny();
-
+        Optional<Product> productOptional = productRepository.findById(id);
         if (productOptional.isEmpty()) {
             throw new ResourceNotFoundException();
         } else {
@@ -46,7 +47,6 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     public Product save(Product product) {
-        allProduct.add(product);
-        return product;
+        return productRepository.save(product);
     }
 }

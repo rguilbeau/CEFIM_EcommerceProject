@@ -1,10 +1,21 @@
 package fr.romainguilbeau.cefim.ecommerce.models;
 
+import javax.persistence.*;
+import java.io.Serializable;
+
 /**
  * Represents a line of an order
  */
-public class OrderProduct {
+@Entity
+@Table(name = "orderproduct")
+public class OrderProduct implements Serializable {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+
+    @ManyToOne
+    private Order order;
     /**
      * The number of ordered product
      */
@@ -12,7 +23,15 @@ public class OrderProduct {
     /**
      * The ordered product
      */
+    @ManyToOne
     private Product product;
+
+    /**
+     * No args constructor for orm
+     */
+    protected OrderProduct() {
+
+    }
 
     /**
      * Create new line of an order
@@ -20,7 +39,8 @@ public class OrderProduct {
      * @param product  product
      * @param quantity quantity
      */
-    public OrderProduct(Product product, int quantity) {
+    public OrderProduct(Order order, Product product, int quantity) {
+        this.order = order;
         this.product = product;
         this.quantity = quantity;
     }
@@ -51,7 +71,11 @@ public class OrderProduct {
     public double getTotalPrice() {
         return product.getPrice() * quantity;
     }
- 
+    
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
     /**
      * {{@inheritDoc}}
      */

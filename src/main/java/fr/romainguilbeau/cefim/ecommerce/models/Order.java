@@ -1,5 +1,6 @@
 package fr.romainguilbeau.cefim.ecommerce.models;
 
+import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,11 +8,14 @@ import java.util.List;
 /**
  * Represents an order
  */
+@Entity
 public class Order {
 
     /**
      * Id of order
      */
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     /**
      * The date the order was created
@@ -20,17 +24,18 @@ public class Order {
     /**
      * The order status
      */
+    @Enumerated(EnumType.STRING)
     private OrderStatus status;
     /**
      * The all lines of the order
      */
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "order")
     private List<OrderProduct> orderProducts;
 
     /**
-     * Create new Order
+     * No args constructor for orm
      */
-    public Order(Long id) {
-        this.id = id;
+    public Order() {
         orderProducts = new ArrayList<>();
     }
 
@@ -104,7 +109,18 @@ public class Order {
      * @param quantity The quantity to add
      */
     public void addProduct(Product product, int quantity) {
-        orderProducts.add(new OrderProduct(product, quantity));
+        boolean exists = false;
+        for (OrderProduct orderProduct : orderProducts) {
+            if (orderProduct.getProduct().getId().equals(product.getId())) {
+                orderProduct.setQuantity(orderProduct.getQuantity() + quantity);
+                exists = true;
+                break;
+            }
+        }
+
+        if (!exists) {
+            orderProducts.add(new OrderProduct(this, product, quantity));
+        }
     }
 
     /**
